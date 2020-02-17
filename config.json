@@ -1,0 +1,44 @@
+{
+	"serverport"	: 9090,
+	"serverip"		: "127.0.0.1",
+	"tilesize"		: 256,
+	"styledir"		: "./styles/",
+	"tiledir"		: "./tiles/",
+	"bboxtiledir"	: "./bboxtiles/",
+	"htmldir"		: "./html/",
+	"styles"		: [ "run","dark","streets","bright" ],
+	"shapefiles"	: ["simplified_land_polygons.shp","land_polygons.shp","ne_10m_populated_places_simple.shp"],
+	"shapefiledir"	: "./Data/",
+	"database"		: {
+		"username"		: "gis",
+		"password"		: "",
+		"host"			: "localhost",
+		"port"			: 5432,
+		"dbname"		: "gis"
+	},
+	"preview"		: {
+		"x"				: 0,
+		"y"				: 0,
+		"z"				: 1,
+		"width"			: 250,
+		"height"		: 200
+	},
+	"htmllib"		: {
+		"libdir"		: "./lib/html/",
+		"contenttypes"	: {
+			"js"			: "text/javascript",
+			"css"			: "text/css"
+		},
+		"imcontenttypes": {
+			"png"			: "image/png"
+		}
+	},
+	"scenes"		: {
+		"scenesdir"		: "./scenes/",
+		"contenttypes"	: {
+			"yaml"			: "text/yaml"
+		},
+		"scenes"		: ["highways","traditional"]
+	},
+	"projectloc"	: "/Users/atrinhojjat/Developer/WorkSpaces/NodeJS/TileServer/"
+}

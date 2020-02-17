@@ -1,0 +1,165 @@
+<html>
+<head>
+<title> Map Test</title>
+<!-- Leaflet -->
+<link rel="stylesheet" href="/weblib/leaflet-0/leaflet.css"/>
+<script type="text/javascript" src="/weblib/leaflet-0/leaflet.js"></script>
+<!-- OpenLayers -->
+<script type="text/javascript" src="/weblib/jquery/jquery-1.11.2.min.js"></script>
+<link rel="stylesheet" href="/weblib/bootstrap/bootstrap.min.css"/>
+<script type="text/javascript" src="/weblib/bootstrap/bootstrap.min.js"></script>
+<!-- <script src="https://mapzen.com/tangram/tangram.min.js"></script> -->
+</head>
+<body>
+<h1> Vector Tile Map by Atrin Hojjat</h1>
+<input type="submit" value="Your Location" onClick="getLocation()" />
+<br/>
+<div id="leafletmap" style="width:1000px;height:500px;">
+</div>
+<br/>
+<div id="buttons" style="">
+</div>
+<!--<div id="openlayersmap" class="map" style="width:1000px;height:500px;">
+</div>
+-->
+<script src="/weblib/tangram/tangram.min.js"></script>
+<script type="text/javascript">
+var host = "http://127.0.0.1:9090";
+var osmUrl = host+"/tile/bright/{z}/{x}/{y}.png",
+	osmAttribution = "Map Provided By &copy <a href='"+host+"/atrin-hojjat.html'>Atrin Hojjat</a>";
+
+
+var tile_sources = {
+	        'mvt': {
+	            type: 'MVT',
+	            url: 'http://192.168.1.33:9090/all/{z}/{x}/{y}.mvt'
+	        },
+	        'geojson': {
+	            type: 'GeoJSON',
+	            url: 'http://192.168.1.33:9090/all/{z}/{x}/{y}.json'//,
+	            // transform: function(data) {
+	            //     // You can edit the tile data here before it gets projected
+	            //     // and rendered
+	            //     return data;
+	            // },
+	            // scripts: [
+	            //     // importScripts doesn't like the agnostic //example.com proto
+	            //     'http://api.tiles.mapbox.com/mapbox.js/plugins/turf/v2.0.0/turf.min.js'
+	            // ]
+	        },
+	        'topojson': {
+	            type: 'TopoJSON',
+	            url: 'http://192.168.1.33:9090/all/{z}/{x}/{y}.topojson'
+	        }
+
+	        // 'osm': {
+	        //     type: 'GeoJSON',
+	        //     url: '//tile.openstreetmap.us/vectiles-all/{z}/{x}/{y}.json'
+	        // },
+
+	    },
+		default_tile_source = 'mvt';
+
+/****************************************
+ * Setting Up Leaflet Map		*
+ ****************************************/
+
+var map = L.map('leafletmap',{center:[0,0],zoom:2});
+var layer = Tangram.leafletLayer({
+	scene: host+'/scene/highways/scene.yaml',
+	attribution: '&copy Atrin Hojjat',
+	maxZoom:18,minZoom:2
+});
+
+layer.scene.subscribe({
+	   load: function (msg) {
+		   var config = msg.config;
+		   config.sources = config.sources || {};
+		   config.sources['osm'] = tile_sources[default_tile_source];
+	   },
+	   error: function (msg) {
+		   // debugger;
+	   },
+	   warning: function (msg) {
+		   // debugger;
+	   }
+});
+
+layer.addTo(map);
+var scene = layer.scene;
+
+
+/****************************************
+ * Get Client's Location		*
+ ****************************************/
+getLocation();
+function getLocation(){
+	if(navigator.geolocation){
+		navigator.geolocation.getCurrentPosition(showLocation, clientLocationError);
+	}
+}
+
+var clientLocation = undefined;
+
+var lastPos = undefined;
+function showLocation(position){
+	if(lastPos == undefined){
+		lastPos = position.coords;
+	}else {
+		map.removeLayer(clientLocation);
+		clientLocation = undefined;
+	}
+
+	clientLocation = new L.FeatureGroup();
+	var marker = L.marker([position.coords.latitude, position.coords.longitude]);
+	marker.bindPopup("You Are Here : <br>"+position.coords.latitude+' , '+ position.coords.longitude);
+	clientLocation.addLayer(marker);
+
+	map.addLayer(clientLocation);
+
+	map.setView([position.coords.latitude,position.coords.longitude],15);
+
+	/*openlayersmap.setView(
+new ol.View({
+    center: [position.coords.latitude,position.coords.longitude],
+    zoom: 15
+  }));*/
+}
+
+showButtons();
+
+var xmlhttpobj = new XMLHttpRequest();
+xmlhttpobj.open("GET","/scene/get-scenes");
+var scenestxt = xmlhttpobj.responseText;
+var buttonsdiv = document.getElementById('buttons');
+
+function showButtons(){
+	var scenesjson ;
+	var html = "";
+	eval("scenesjson = "+scenestxt);
+	var scenes ;
+	eval("scenes = "+scenesjson.scenes);
+	for (var i = 0;i<scenes.length;i++){
+		var scene = scenes[i];
+		// data += (i == styles.lenght - 1 ? "]}" :",");
+		html += '<button id="'+scene+'" onclick="changeScene("'+scene+'")" value="'+scene+'"/>';
+	}
+	buttondiv.innerHTML(html);
+}
+
+function changeScene(name){
+	map.removeLayer(layer);
+	layer = Tangram.leafletLayer({
+		scene: '/scene/'+name+'/scene.yaml',
+		attribution: '&copy Atrin Hojjat',
+		maxZoom:18,minZoom:2
+	});
+	layer.addTo(map);
+}
+
+function clientLocationError(error){
+}
+
+</script>
+</body>
+</html>
